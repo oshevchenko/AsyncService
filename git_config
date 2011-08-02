@@ -1,0 +1,3 @@
+#!/bin/bash
+git remote add github git@github.com:oshevchenko/AsyncService.git
+git remote rm origin
