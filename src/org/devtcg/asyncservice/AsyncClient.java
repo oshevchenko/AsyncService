@@ -83,7 +83,7 @@ public class AsyncClient extends Activity
         public void onServiceConnected(ComponentName className, IBinder service)
         {
             Log.d(TAG, "onServiceConnected");
-            mService = IAsyncService.Stub.asInterface((IBinder)service);
+            mService = IAsyncService.Stub.asInterface(service);
         }
 
         public void onServiceDisconnected(ComponentName className)
