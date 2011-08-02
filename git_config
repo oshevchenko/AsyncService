@@ -1,3 +1,6 @@
 #!/bin/bash
 git remote add github git@github.com:oshevchenko/AsyncService.git
 git remote rm origin
+git config user.email shevchenko.adb@gmail.com
+git config user.name "Oleksandr Shevchenko"
+
