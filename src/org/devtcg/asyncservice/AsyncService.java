@@ -11,6 +11,7 @@ import android.util.Log;
 public class AsyncService extends Service
 {
     private static final String TAG = "AsyncService";
+    private boolean mDirectionUp = true;
 
     @Override
     public void onCreate()
@@ -32,6 +33,15 @@ public class AsyncService extends Service
 
     private final IAsyncService.Stub mBinder = new IAsyncService.Stub()
     {
+        public void setDirectionUp()
+        {
+            mDirectionUp = true;
+        }
+        public void setDirectionDown()
+        {
+            mDirectionUp = false;
+        }
+
         public void startCount(final int to, final IAsyncServiceCounter callback)
         {
             Thread t = new Thread()
@@ -53,7 +63,9 @@ public class AsyncService extends Service
 
                 public void run()
                 {
-                    for (int i = 1; i <= to; i++)
+                    int i = 1;
+                    while ((i >= 0) && (i <= to))
+//                    for (int i = 1; i <= to; i++)
                     {
                         preciseSleep(1000);
 
@@ -69,7 +81,9 @@ public class AsyncService extends Service
                             // TODO Auto-generated catch block
                             e.printStackTrace();
                         }
+                        if (mDirectionUp) i += 1; else i -= 1;
                     }
+
                 }
             };
 

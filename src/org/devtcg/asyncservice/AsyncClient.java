@@ -27,6 +27,11 @@ public class AsyncClient extends Activity
 
     private boolean mCounting = false;
 
+    private boolean mCountUp = true;
+    private boolean mIsBound = false;
+    private Button b;
+
+
     @Override
     public void onCreate(Bundle icicle)
     {
@@ -35,11 +40,16 @@ public class AsyncClient extends Activity
 
         mCounterText = (TextView)findViewById(R.id.counter);
 
-        Button b = (Button)findViewById(R.id.start);
+        b = (Button)findViewById(R.id.start);
         b.setOnClickListener(mFire);
 
-        bindService(new Intent(IAsyncService.class.getName()), mConnection,
-          Context.BIND_AUTO_CREATE);
+        doBindService();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        doUnbindService();
     }
 
 
@@ -55,6 +65,31 @@ public class AsyncClient extends Activity
 
             if (mCounting == true)
             {
+                try
+                {
+                    if (mCountUp)
+                    {
+                        mService.setDirectionDown();
+                        mCountUp = false;
+                        b.setText("Start countup");
+                    }
+                    else
+                    {
+                        mService.setDirectionUp();
+                        mCountUp = true;
+                        b.setText("Start countdown");
+                    }
+
+                }
+                catch (DeadObjectException e)
+                {
+                    mCounting = false;
+                    Log.d(TAG, Log.getStackTraceString(e));
+                } catch (RemoteException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
                 /* This would be simple to work around, if you're curious. */
                 Log.d(TAG, "mCounter is implemented globally and cannot be reused while counting is in progress.");
                 return;
@@ -63,8 +98,12 @@ public class AsyncClient extends Activity
             try
             {
                 mCounting = true;
+                mCountUp = true;
+                mService.setDirectionUp();
                 mService.startCount(10, mCounter);
                 Log.d(TAG, "Counting has begun...");
+                b.setText("Start countdown");
+                mCountUp = true;
             }
             catch (DeadObjectException e)
             {
@@ -103,8 +142,9 @@ public class AsyncClient extends Activity
             {
                 public void run()
                 {
-                    if (n == 10)
+                    if ((n == 10) || (n == 0))
                     {
+                        b.setText("Start Counting!");
                         mCounterText.setText("Done!");
                         mCounting = false;
                     }
@@ -114,4 +154,21 @@ public class AsyncClient extends Activity
             });
         }
     };
+    void doBindService() {
+        // Establish a connection with the service.  We use an explicit
+        // class name because we want a specific service implementation that
+        // we know will be running in our own process (and thus won't be
+        // supporting component replacement by other applications).
+        bindService(new Intent(IAsyncService.class.getName()), mConnection,
+                Context.BIND_AUTO_CREATE);
+        mIsBound = true;
+    }
+
+    void doUnbindService() {
+        if (mIsBound) {
+            // Detach our existing connection.
+            unbindService(mConnection);
+            mIsBound = false;
+        }
+    }
 }
